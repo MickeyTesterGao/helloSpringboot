@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<!-- 根标签 -->
+<configuration>
+    <settings>
+        <!--驼峰命名法，兼容下划线-->
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
+        <!--开启二级缓存,全局总开关，这里关闭，mapper中开启了也没用-->
+        <setting name="cacheEnabled" value="false"/>
+    </settings>
+    <typeAliases>
+        <!--type:实体类的全路径。alias:别名，通常首字母大写-->
+        <!--<typeAlias type="com.zpc.mybatis.pojo.User" alias="User"/>-->
+        <package name="spring.hello.domain.User"/>
+    </typeAliases>
+</configuration>
