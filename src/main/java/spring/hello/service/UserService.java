@@ -17,9 +17,9 @@ public class UserService {
     @Autowired
     User user;
 
-    public void selectIDdata(){
-        userMapper.queryUserById(Integer.valueOf(1));
-        System.out.println("查询成功");
+    public Object selectIDdata(Integer id){
+       Object  data = userMapper.queryUserById(id);
+       return data;
     }
     //登录(查询用户功能)
     public Object login(String username,String password){

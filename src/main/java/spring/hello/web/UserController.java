@@ -20,9 +20,6 @@ import java.util.Map;
         @RequestMapping("/")
         @ResponseBody
         public String index(){
-
-            userService.selectIDdata();
-
             return "hello spring boot";
         }
 
@@ -53,6 +50,11 @@ import java.util.Map;
             ArrayList  data= userService.queryUserAll();
             return data;
 
+        }
+        @PostMapping("/queryUserById")
+        @ResponseBody
+        public Object queryUserById(@Validated(UserMapper.class) @RequestBody User user){
+            return userService.selectIDdata(user.getId());
         }
 
     }
