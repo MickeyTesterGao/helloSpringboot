@@ -1,98 +1,94 @@
 package spring.hello.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.List;
+
+import javax.servlet.http.HttpSession;
+
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import spring.hello.domain.User;
-import spring.hello.mapper.UserMapper;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
+import spring.hello.Constants;
+import spring.hello.domain.entity.UserDO;
+import spring.hello.domain.form.UserForm;
+import spring.hello.exception.UnAuthException;
+import spring.hello.mapper.IUserMapper;
+
+/**
+ * @author xinufo
+ *
+ */
 @Service
-@Transactional
 public class UserService {
-    @Autowired
-    UserMapper userMapper;
-    @Autowired
-    User user;
+    private IUserMapper userMapper;
+    private PasswordEncoder encoder;
 
-    public Object selectIDdata(Integer id){
-       Object  data = userMapper.queryUserById(id);
-       return data;
+    public UserService(IUserMapper userMapper, PasswordEncoder encoder) {
+        this.userMapper = userMapper;
+        this.encoder = encoder;
     }
-    //登录(查询用户功能)
-    public Object login(String username,String password){
+
+    public void login(String username, String password, HttpSession session) {
+        UserDO user = userMapper.findByUsername(username);
+        if (user == null) {
+            throw new UnAuthException("用户名或密码错误");
+        }
+        if (!encoder.matches(password, user.getPassword())) {
+            throw new UnAuthException("用户名或密码错误");
+
+        }
+        session.setAttribute(Constants.SESSION_KEY, user.getId());
+    }
+
+    public Integer register(UserForm form) {
+        UserDO entity = translate(form);
+        // 加密密码
+        entity.setPassword(encoder.encode(entity.getPassword()));
         try {
-            Object users = userMapper.login(username,password);
-            if(username.equals(((User) users).getUsername()) && password.equals(((User) users).getPassword())){
-                Map<String, String> map = new HashMap<String, String>();
-                map.put("msg","登录成功");
-                return map;
-            }else {
-                Map<String, String> map = new HashMap<String, String>();
-                map.put("msg","用户名或密码不正确！");
-                return map;
+            userMapper.add(entity);
+            return entity.getId();
+        } catch (DuplicateKeyException e) {
+            // 通过数据库唯一索引保证用户名不重复
+            throw new RuntimeException("用户名已经被使用");
+        }
+    }
+
+    public void update(Integer id, UserForm form) {
+        UserDO entity = translate(form);
+        // 加密密码
+        entity.setPassword(encoder.encode(entity.getPassword()));
+        try {
+            if (userMapper.update(entity) == 0) {
+                throw new RuntimeException("用户不存在");
             }
-        }catch (NullPointerException e){
-            Map<String, String> map = new HashMap<String, String>();
-            map.put("msg","用户名或密码不正确！");
-            return map;
+        } catch (DuplicateKeyException e) {
+            throw new RuntimeException("用户名已经被使用");
         }
     }
 
-    //注册用户(新增用户)
-    public Object register(User user){
-        try {
-            this.userMapper.insertUser(user);
-            Map<String, String> map = new HashMap<String, String>();
-            map.put("msg","注册成功");
-            return map;
-        }catch (Exception e){
-            Map<String, String> map = new HashMap<String, String>();
-            map.put("msg","注册失败");
-            return map;
+    public void delete(Integer id) {
+        if (userMapper.deleteById(id) == 0) {
+            throw new RuntimeException("用户不存在");
         }
     }
-    //修改用户信息
-    public Object updateUser(User user){
-        try {
-            System.out.println(user);
-            userMapper.updateUser(user);
-            Map<String, String> map = new HashMap<String, String>();
-            map.put("msg","修改用户信息成功");
-            return map;
-        }catch (Exception e){
-            Map<String, String> map = new HashMap<String, String>();
-            map.put("msg","修改用户信息失败");
-            return map;
-        }
 
+    public List<UserDO> findAll() {
+        return userMapper.findAll();
     }
-    //删除用户
-    public  Object deleteUser(User user){
-        try {
-            Object users=userMapper.queryUserById(user.getId());
 
-            int i = userMapper.deleteUserById(user.getId());
-            if(i==0){
-                throw new RuntimeException("no user");
-            }
-            Map<String, String> map = new HashMap<String, String>();
-            map.put("msg","删除用户成功");
-            return map;
-        }catch (Exception e){
-            Map<String, String> map = new HashMap<String, String>();
-            map.put("msg","删除用户失败,需确认该用户是否存在");
-            return map;
-        }
+    public UserDO findById(Integer id) {
+        return userMapper.findById(id);
     }
-    //查询所有用户
-    public ArrayList queryUserAll(){
 
-        ArrayList<User> data = userMapper.queryUserAll();
-        return data;
-
+    private UserDO translate(UserForm form) {
+        UserDO entity = new UserDO();
+        entity.setUsername(form.getUsername());
+        entity.setPassword(form.getPassword());
+        entity.setName(form.getName());
+        entity.setAge(form.getAge());
+        entity.setSex(form.getSex());
+        entity.setBirthday(form.getBirthday());
+        return entity;
     }
 
 }

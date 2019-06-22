@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- mapper:根标签，namespace：命名空间，随便写，一般保证命名空间唯一 ，为了使用接口动态代理，这里必须是接口的全路径名-->
+<mapper namespace="spring.hello.mapper.IUserMapper">
+    <sql id="cols">
+        `id`, `user_name`, `password`, `name`, `age`, `sex`, `birthday`, `created`, `updated`
+    </sql>
+
+    <!--插入数据-->
+    <!--useGeneratedKeys 表示使用数据库自动生成的ID -->
+    <!--keyProperty 与数据库ID关联的实体类属性 -->
+    <insert id="add" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO tb_user ( `user_name`, `password`, `name`, `age`, `sex`, `birthday`, `created`, `updated` )
+        VALUES ( #{username}, #{password}, #{name}, #{age}, #{sex}, #{birthday}, now(), now() );
+    </insert>
+
+    <!--更新用户-->
+    <update id="update">
+        UPDATE tb_user
+        <trim prefix="set" suffixOverrides=",">
+            <if test="username!=null">`user_name` = #{username},</if>
+            <if test="password!=null">`password` = #{password},</if>
+            <if test="name!=null">`name` = #{name},</if>
+            <if test="age!=null">`age` = #{age},</if>
+            <if test="sex!=null">`sex` = #{sex},</if>
+            <if test="birthday!=null">`birthday` = #{birthday},</if>
+            updated = now(),
+        </trim>
+        WHERE `id` = #{id};
+    </update>
+
+    <!--删除用户-->
+    <delete id="deleteById">
+        delete from tb_user where id=#{id}
+    </delete>
+
+    <!--查询所有用户-->
+    <!--查询语句尽量不要使用*-->
+    <!--通过include标签实现复用-->
+    <select id="findAll" resultType="UserDO">
+        select <include refid="cols" /> from tb_user
+    </select>
+
+    <!--查询用户-->
+    <select id="findById" resultType="UserDO">
+        select * from tb_user where id = #{id}
+    </select>
+
+    <select id="findByUsername" resultType="UserDO">
+        select * from tb_user where user_name = #{username}
+    </select>
+
+</mapper>
