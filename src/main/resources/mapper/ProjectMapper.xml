@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- mapper:根标签，namespace：命名空间，随便写，一般保证命名空间唯一 ，为了使用接口动态代理，这里必须是接口的全路径名-->
+<mapper namespace="com.api.test.dao.ProjectDao">
+    <sql id="cols">
+        `id`, `project_name`, `description`, `create_user`, `update_user`, `created`, `updated`
+    </sql>
+
+    <!--插入数据-->
+    <!--useGeneratedKeys 表示使用数据库自动生成的ID -->
+    <!--keyProperty 与数据库ID关联的实体类属性 -->
+    <insert id="addProject" useGeneratedKeys="true" keyProperty="id" parameterType="com.alibaba.fastjson.JSONObject">
+        INSERT INTO tb_projects (  `project_name`, `description`, `create_user`, `update_user`, `created`, `updated` )
+        VALUES ( #{project_name}, #{description}, #{create_user}, #{update_user}, now(), now() );
+    </insert>
+
+    <!--更新用户-->
+    <update id="updateProject" parameterType="com.alibaba.fastjson.JSONObject">
+        UPDATE tb_projects
+        <trim prefix="set" suffixOverrides=",">
+            <if test="project_name!=null">`project_name` = #{project_name},</if>
+            <if test="description!=null">`description` = #{description},</if>
+            <if test="update_user!=null">`update_user` = #{update_user},</if>
+            updated = now(),
+        </trim>
+        WHERE `id` = #{id};
+    </update>
+
+    <!--删除用户-->
+    <delete id="deleteProjectById" parameterType="com.alibaba.fastjson.JSONObject">
+        delete from tb_projects where id=#{id}
+    </delete>
+
+    <!--查询所有用户-->
+    <!--查询语句尽量不要使用*-->
+    <!--通过include标签实现复用-->
+    <select id="findAllProject" resultType="com.alibaba.fastjson.JSONObject">
+        SELECT
+        w.id                                      id,
+        w.project_name                            project_name,
+        w.description                             description,
+        date_format(w.created, '%Y.%m.%d %T') created
+        FROM tb_projects w
+        ORDER BY w.id DESC
+        LIMIT #{offSet}, #{pageRow}
+    </select>
+
+    <select id="countProject" resultType="Integer">
+        SELECT count(0)
+        FROM tb_projects
+    </select>
+
+    <select id="finProjectByID" resultType="com.alibaba.fastjson.JSONObject">
+        select * from tb_projects where id = #{id}
+    </select>
+
+    <select id="findProjectByName" resultType="com.alibaba.fastjson.JSONObject">
+        select * from tb_projects where project_name = #{project_name}
+    </select>
+
+</mapper>
