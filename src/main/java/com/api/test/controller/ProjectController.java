@@ -18,7 +18,7 @@ public class ProjectController {
     private ProjectServiceImpl projectServiceImpl;
     public ProjectController(ProjectServiceImpl projectServiceImpl) {this.projectServiceImpl = projectServiceImpl;}
 
-    //新增项目1
+    //新增项目-新增master分支内容
     @RequiresPermissions("project:add")
     @PostMapping("/addProject")
     public JSONObject addProject(@RequestBody JSONObject requestJson) {
